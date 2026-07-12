@@ -1,8 +1,11 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'song-frontend')));
+
 app.get('/', (req, res) => {
-    res.send('Welcome to the Song App Backend!');
+    res.sendFile(path.join(__dirname, 'song-frontend', 'index.html'));
 });
 
 app.get('/hello', (req, res) => {
