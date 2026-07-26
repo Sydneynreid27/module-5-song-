@@ -41,7 +41,10 @@ function requireAuth(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.authUser = { username: decoded.username };
+        req.authUser = {
+            username: decoded.username,
+            status: Number(decoded.status ?? 1),
+        };
         return next();
     } catch (error) {
         return res.status(401).json({ auth: 0, message: 'invalid token' });
@@ -122,8 +125,12 @@ app.post('/auth', async (req, res) => {
         return res.status(401).json({ message: 'bad password' });
     }
 
-    const token = jwt.sign({ username }, JWT_SECRET, { algorithm: 'HS256', expiresIn: '2h' });
-    return res.json({ username2: username, token, auth: 1 });
+    const token = jwt.sign(
+        { username, status: Number(user.status ?? 1) },
+        JWT_SECRET,
+        { algorithm: 'HS256', expiresIn: '2h' }
+    );
+    return res.json({ username2: username, token, auth: 1, status: Number(user.status ?? 1) });
 });
 
 app.get('/status', (req, res) => {
@@ -134,7 +141,7 @@ app.get('/status', (req, res) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        return res.json({ auth: 1, username: decoded.username });
+        return res.json({ auth: 1, username: decoded.username, status: Number(decoded.status ?? 1) });
     } catch (error) {
         return res.status(401).json({ auth: 0, message: 'invalid token' });
     }
@@ -147,6 +154,17 @@ app.get('/api/songs', async (req, res) => {
     }
 
     return res.json(inMemorySongs);
+});
+
+app.get('/api/my-songs', requireAuth, async (req, res) => {
+    const username = req.authUser.username;
+
+    if (isDatabaseConnected()) {
+        const songs = await Song.find({ username }).sort({ createdAt: -1 });
+        return res.json(songs.map(normalizeSong));
+    }
+
+    return res.json(inMemorySongs.filter((song) => song.username === username));
 });
 
 app.post('/api/songs', requireAuth, async (req, res) => {
@@ -177,23 +195,34 @@ app.post('/api/songs', requireAuth, async (req, res) => {
 
 app.delete('/api/songs/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
+    const { username, status } = req.authUser;
+    const isAdmin = status === 9;
 
     if (isDatabaseConnected()) {
         if (!mongoose.isValidObjectId(id)) {
             return res.status(400).json({ message: 'invalid song id' });
         }
 
-        const deleted = await Song.findByIdAndDelete(id);
-        if (!deleted) {
+        const song = await Song.findById(id);
+        if (!song) {
             return res.status(404).json({ message: 'song not found' });
         }
 
-        return res.json({ message: 'song deleted', id: String(deleted._id) });
+        if (!isAdmin && song.username !== username) {
+            return res.status(403).json({ message: 'not allowed to delete this song' });
+        }
+
+        await Song.findByIdAndDelete(id);
+        return res.json({ message: 'song deleted', id: String(song._id) });
     }
 
     const index = inMemorySongs.findIndex((song) => song._id === id);
     if (index === -1) {
         return res.status(404).json({ message: 'song not found' });
+    }
+
+    if (!isAdmin && inMemorySongs[index].username !== username) {
+        return res.status(403).json({ message: 'not allowed to delete this song' });
     }
 
     inMemorySongs.splice(index, 1);

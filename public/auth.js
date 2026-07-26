@@ -15,6 +15,10 @@ class Auth {
     return localStorage.getItem('uname') || '';
   }
 
+  status() {
+    return Number(localStorage.getItem('ustatus') || 1);
+  }
+
   async validate() {
     if (!this.isAuthorized()) {
       window.location.href = '/login.html';
@@ -44,6 +48,7 @@ class Auth {
     localStorage.removeItem('auth');
     localStorage.removeItem('token');
     localStorage.removeItem('uname');
+    localStorage.removeItem('ustatus');
     window.location.href = '/login.html';
   }
 }

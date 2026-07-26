@@ -30,6 +30,7 @@ loginForm.addEventListener('submit', async (event) => {
     localStorage.setItem('auth', String(data.auth));
     localStorage.setItem('token', data.token);
     localStorage.setItem('uname', data.username2);
+    localStorage.setItem('ustatus', String(data.status ?? 1));
 
     window.location.href = '/manage.html';
   } catch (error) {

@@ -15,7 +15,16 @@ function getSelectedSongId() {
 }
 
 async function loadSongs() {
-  const response = await fetch('/api/songs');
+  const response = await fetch('/api/my-songs', {
+    headers: {
+      'x-auth': currentAuth.token(),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Could not load your songs');
+  }
+
   const songs = await response.json();
 
   songSelect.innerHTML = '';
@@ -26,7 +35,7 @@ async function loadSongs() {
     songSelect.appendChild(option);
   });
 
-  showSongMessage(`${songs.length} songs available`);
+  showSongMessage(`${songs.length} of your songs available`);
 }
 
 addForm.addEventListener('submit', async (event) => {
@@ -89,5 +98,9 @@ deleteForm.addEventListener('submit', async (event) => {
 
 document.addEventListener('auth:ready', async (event) => {
   currentAuth = event.detail.auth;
-  await loadSongs();
+  try {
+    await loadSongs();
+  } catch (error) {
+    showSongMessage('Could not load songs for your account.', true);
+  }
 });
