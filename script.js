@@ -1,25 +1,44 @@
-const container = document.getElementById("songContainer");
+const songList = document.getElementById('songList');
+const statusText = document.getElementById('status');
+const reloadBtn = document.getElementById('reloadBtn');
+const apiBase = window.APP_CONFIG?.API_BASE || '';
 
-fetch("https://module-5-song.onrender.com/songs")
-    .then(response => response.json())
-    .then(songs => {
+function renderSongs(songs) {
+  songList.innerHTML = '';
 
-        songs.forEach(song => {
+  songs.forEach((song, index) => {
+    const li = document.createElement('li');
+    li.className = 'song-item';
+    li.style.animationDelay = `${index * 80}ms`;
 
-            container.innerHTML += `
-                <div class="col-md-4">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h4>${song.title}</h4>
-                            <p>${song.artist}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+    li.innerHTML = `
+      <span class="song-title">${song.title}</span>
+      <span class="song-artist">${song.artist} • added by ${song.username || 'anonymous'}</span>
+    `;
 
-        });
+    songList.appendChild(li);
+  });
+}
 
-    })
-    .catch(error => {
-        console.log("Error loading songs:", error);
-    });
+async function loadSongs() {
+  statusText.textContent = 'Loading songs...';
+
+  try {
+    const response = await fetch(`${apiBase}/api/songs`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const songs = await response.json();
+    renderSongs(songs);
+    statusText.textContent = `${songs.length} songs loaded`;
+  } catch (error) {
+    songList.innerHTML = '';
+    statusText.textContent = 'Could not load songs right now.';
+    console.error('Failed to load songs:', error);
+  }
+}
+
+reloadBtn.addEventListener('click', loadSongs);
+loadSongs();

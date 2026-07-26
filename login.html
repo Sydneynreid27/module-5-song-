@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Song Vibes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page page-two-col">
+    <section class="songs-panel">
+      <p class="eyebrow">Account Access</p>
+      <h2>Log In</h2>
+      <form id="loginForm" class="form-stack">
+        <label for="loginUsername">Username</label>
+        <input id="loginUsername" type="text" required>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" required>
+        <button class="reload-btn" type="submit">Login</button>
+      </form>
+    </section>
+
+    <section class="songs-panel">
+      <p class="eyebrow">Create User</p>
+      <h2>Sign Up</h2>
+      <form id="signupForm" class="form-stack">
+        <label for="signupUsername">Username</label>
+        <input id="signupUsername" type="text" required>
+        <label for="signupPassword">Password</label>
+        <input id="signupPassword" type="password" required>
+        <button class="reload-btn" type="submit">Create Account</button>
+      </form>
+      <p id="statusBox" class="muted-text">Enter credentials to begin.</p>
+      <p><a href="./">Back to Home</a></p>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>
