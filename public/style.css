@@ -54,7 +54,7 @@ body {
 .page {
   position: relative;
   z-index: 1;
-  width: min(920px, 92vw);
+  width: min(1120px, 94vw);
   margin: 42px auto;
   display: grid;
   gap: 24px;
@@ -167,6 +167,62 @@ h1 {
   padding: 22px;
   box-shadow: 0 10px 28px rgba(58, 59, 76, 0.1);
   animation: rise-in 680ms ease-out;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.backend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #f2ebe4;
+}
+
+.metric-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.metric-card strong {
+  font-family: "Outfit", sans-serif;
+  font-size: 1.05rem;
+}
+
+.backend-notes {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.endpoint-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.endpoint-list code {
+  font-family: inherit;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .panel-top {
@@ -285,7 +341,12 @@ h2 {
     gap: 16px;
   }
 
+  .dashboard-grid,
   .page-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .backend-grid {
     grid-template-columns: 1fr;
   }
 

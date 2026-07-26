@@ -23,18 +23,51 @@
       </nav>
       <p class="eyebrow">Now Streaming</p>
       <h1>Song Vibes</h1>
-      <p class="subtitle">A tiny frontend for your Express API with login, token status checks, and song management.</p>
+      <p class="subtitle">A fuller dashboard for the Express backend, with live health checks, song data, and protected CRUD flows.</p>
       <p class="build-stamp">Rendered build stamp: 2026-07-26 14:45 UTC</p>
       <button id="reloadBtn" class="reload-btn" type="button">Refresh Songs</button>
     </header>
 
-    <section class="songs-panel" aria-live="polite">
-      <div class="panel-top">
-        <h2>Top Tracks</h2>
-        <p id="status">Loading songs...</p>
-      </div>
-      <ul id="songList" class="song-list"></ul>
-    </section>
+    <div class="dashboard-grid">
+      <section class="songs-panel" aria-live="polite">
+        <div class="panel-top">
+          <h2>Top Tracks</h2>
+          <p id="status">Loading songs...</p>
+        </div>
+        <ul id="songList" class="song-list"></ul>
+      </section>
+
+      <section class="songs-panel backend-panel" aria-live="polite">
+        <div class="panel-top">
+          <h2>Backend Pulse</h2>
+          <p id="healthStatus">Checking /api/health...</p>
+        </div>
+
+        <div class="backend-grid">
+          <article class="metric-card">
+            <span class="metric-label">Service</span>
+            <strong id="serviceName">module-5-song</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Database</span>
+            <strong id="databaseState">Waiting</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Last Ping</span>
+            <strong id="healthTimestamp">Waiting</strong>
+          </article>
+        </div>
+
+        <div class="backend-notes">
+          <p class="muted-text">The homepage now surfaces the same Express service that powers login, token checks, and song CRUD.</p>
+          <ul class="endpoint-list">
+            <li><code>/api/health</code> reports service status.</li>
+            <li><code>/api/songs</code> returns the public track list.</li>
+            <li><code>/api/my-songs</code> shows protected user content after login.</li>
+          </ul>
+        </div>
+      </section>
+    </div>
   </main>
 
   <script src="config.js"></script>
