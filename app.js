@@ -52,9 +52,22 @@ function requireAuth(req, res, next) {
     }
 }
 
+function canManageSong(songOwner, authUser) {
+    return authUser.status === 9 || songOwner === authUser.username;
+}
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/health', (req, res) => {
+    res.json({
+        ok: true,
+        service: 'module-5-song',
+        database: isDatabaseConnected() ? 'connected' : 'memory-mode',
+        timestamp: new Date().toISOString(),
+    });
+});
 
 app.get('/api/hello', (req, res) => {
     res.send('Hello Express');
@@ -151,6 +164,13 @@ app.get('/status', (req, res) => {
     }
 });
 
+app.get('/api/me', requireAuth, (req, res) => {
+    return res.json({
+        username: req.authUser.username,
+        status: req.authUser.status,
+    });
+});
+
 app.get('/api/songs', async (req, res) => {
     if (isDatabaseConnected()) {
         const songs = await Song.find().sort({ createdAt: -1 });
@@ -158,6 +178,30 @@ app.get('/api/songs', async (req, res) => {
     }
 
     return res.json(inMemorySongs);
+});
+
+app.get('/api/songs/:id', async (req, res) => {
+    const { id } = req.params;
+
+    if (isDatabaseConnected()) {
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'invalid song id' });
+        }
+
+        const song = await Song.findById(id);
+        if (!song) {
+            return res.status(404).json({ message: 'song not found' });
+        }
+
+        return res.json(normalizeSong(song));
+    }
+
+    const song = inMemorySongs.find((item) => item._id === id);
+    if (!song) {
+        return res.status(404).json({ message: 'song not found' });
+    }
+
+    return res.json(song);
 });
 
 app.get('/api/my-songs', requireAuth, async (req, res) => {
@@ -197,9 +241,61 @@ app.post('/api/songs', requireAuth, async (req, res) => {
     return res.status(201).json(nextSong);
 });
 
+app.patch('/api/songs/:id', requireAuth, async (req, res) => {
+    const { id } = req.params;
+    const { title, artist } = req.body || {};
+
+    if (!title && !artist) {
+        return res.status(400).json({ message: 'provide title and/or artist to update' });
+    }
+
+    if (isDatabaseConnected()) {
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'invalid song id' });
+        }
+
+        const song = await Song.findById(id);
+        if (!song) {
+            return res.status(404).json({ message: 'song not found' });
+        }
+
+        if (!canManageSong(song.username, req.authUser)) {
+            return res.status(403).json({ message: 'not allowed to update this song' });
+        }
+
+        if (title) {
+            song.title = title;
+        }
+        if (artist) {
+            song.artist = artist;
+        }
+
+        await song.save();
+        return res.json(normalizeSong(song));
+    }
+
+    const song = inMemorySongs.find((item) => item._id === id);
+    if (!song) {
+        return res.status(404).json({ message: 'song not found' });
+    }
+
+    if (!canManageSong(song.username, req.authUser)) {
+        return res.status(403).json({ message: 'not allowed to update this song' });
+    }
+
+    if (title) {
+        song.title = title;
+    }
+    if (artist) {
+        song.artist = artist;
+    }
+
+    return res.json(song);
+});
+
 app.delete('/api/songs/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
-    const { username, status } = req.authUser;
+    const { status } = req.authUser;
     const isAdmin = status === 9;
 
     if (isDatabaseConnected()) {
@@ -212,7 +308,7 @@ app.delete('/api/songs/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ message: 'song not found' });
         }
 
-        if (!isAdmin && song.username !== username) {
+        if (!isAdmin && !canManageSong(song.username, req.authUser)) {
             return res.status(403).json({ message: 'not allowed to delete this song' });
         }
 
@@ -225,7 +321,7 @@ app.delete('/api/songs/:id', requireAuth, async (req, res) => {
         return res.status(404).json({ message: 'song not found' });
     }
 
-    if (!isAdmin && inMemorySongs[index].username !== username) {
+    if (!isAdmin && !canManageSong(inMemorySongs[index].username, req.authUser)) {
         return res.status(403).json({ message: 'not allowed to delete this song' });
     }
 
