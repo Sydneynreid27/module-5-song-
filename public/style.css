@@ -70,6 +70,24 @@ body {
   animation: rise-in 500ms ease-out;
 }
 
+.live-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(130deg, #b42318, #f04438);
+  letter-spacing: 0.02em;
+}
+
+.build-stamp {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: #7a2e2e;
+  font-weight: 600;
+}
+
 .nav-links {
   display: flex;
   gap: 12px;
