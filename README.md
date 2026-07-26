@@ -3,6 +3,7 @@
 This project now includes:
 - Static frontend hosting from Express
 - User signup and login with JWT tokens
+- Password hashing with bcryptjs
 - Token status checking via request headers
 - Song creation and deletion by selected song ID
 - MongoDB models for users and songs

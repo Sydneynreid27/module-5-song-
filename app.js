@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const { connectDatabase, isDatabaseConnected } = require('./db');
@@ -79,6 +80,8 @@ app.post('/users', async (req, res) => {
         return res.status(400).json({ message: 'username and password are required' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     if (isDatabaseConnected()) {
         try {
             const existing = await User.findOne({ username });
@@ -86,7 +89,7 @@ app.post('/users', async (req, res) => {
                 return res.status(409).json({ message: 'username already exists' });
             }
 
-            const newUser = await User.create({ username, password, status: status ?? 1 });
+            const newUser = await User.create({ username, password: hashedPassword, status: status ?? 1 });
             return res.status(201).json({ message: 'user saved', id: String(newUser._id) });
         } catch (error) {
             return res.status(500).json({ message: 'user creation failed', error: error.message });
@@ -97,7 +100,7 @@ app.post('/users', async (req, res) => {
     if (duplicate) {
         return res.status(409).json({ message: 'username already exists' });
     }
-    const newUser = { _id: String(Date.now()), username, password, status: status ?? 1 };
+    const newUser = { _id: String(Date.now()), username, password: hashedPassword, status: status ?? 1 };
     inMemoryUsers.push(newUser);
     return res.status(201).json({ message: 'user saved (memory mode)', id: newUser._id });
 });
@@ -121,7 +124,8 @@ app.post('/auth', async (req, res) => {
         return res.status(401).json({ message: 'bad username' });
     }
 
-    if (user.password !== password) {
+    const passwordOk = await bcrypt.compare(password, user.password);
+    if (!passwordOk) {
         return res.status(401).json({ message: 'bad password' });
     }
 
